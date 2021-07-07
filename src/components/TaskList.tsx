@@ -12,18 +12,63 @@ interface Task {
 
 export function TaskList() {
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState<string>('');
+  const [lastId, setLastId] = useState<number>(0);
 
   function handleCreateNewTask() {
-    // Crie uma nova task com um id random, não permita criar caso o título seja vazio.
+
+    if(!newTaskTitle.trim()) {
+      alert('O titulo da task não pode ser vázio');
+      return;
+    }
+
+    const existsTask = tasks.filter(task =>
+      task.title.toLowerCase() === newTaskTitle.trim().toLowerCase()
+    );
+
+    if(existsTask.length > 0) {
+      alert('A tarefa informada já foi cadastrada.');
+      return;
+    }
+    
+    const taskId = lastId + 1;
+    const currentTask: Task = {
+      id: taskId, 
+      isComplete: false,
+      title: newTaskTitle.trim()
+    }
+
+    setTasks([...tasks, currentTask]);
+    setNewTaskTitle('');
+    setLastId(taskId);
   }
 
   function handleToggleTaskCompletion(id: number) {
-    // Altere entre `true` ou `false` o campo `isComplete` de uma task com dado ID
+    const newTasks = tasks.map(task => {
+      if(task.id === id) {
+        task.isComplete = !task.isComplete;
+      }
+      return task;
+    });
+
+    setTasks(newTasks);
   }
 
   function handleRemoveTask(id: number) {
-    // Remova uma task da listagem pelo ID
+    const currentTask = tasks.filter(task => task.id == id)[0];
+    if(currentTask.isComplete) {
+      const message = 'A task a ser excluída já foi concluída, tem certeza que deseja realizar a exclusão?';
+      if(confirm(message)) {
+        removeTask(id);
+      }
+      return;
+    }
+    removeTask(id);
+  }
+
+  function removeTask(id: number) {
+    const newTasks = tasks.filter(task => task.id != id);
+    setTasks(newTasks);
   }
 
   return (
